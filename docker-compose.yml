@@ -5,10 +5,10 @@ services:
     image: mysql:5.7
     restart: always
     environment:
-      MYSQL_DATABASE: zabbix
-      MYSQL_USER: zabbix
-      MYSQL_PASSWORD: zabbixpass
-      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - ./mysql:/var/lib/mysql
 
@@ -19,9 +19,9 @@ services:
       - mysql-server
     environment:
       DB_SERVER_HOST: mysql-server
-      MYSQL_USER: zabbix
-      MYSQL_PASSWORD: zabbixpass
-      MYSQL_DATABASE: zabbix
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
     volumes:
       - ./zbx_server:/etc/zabbix
     ports:
@@ -35,11 +35,11 @@ services:
       - mysql-server
     environment:
       DB_SERVER_HOST: mysql-server
-      MYSQL_USER: zabbix
-      MYSQL_PASSWORD: zabbixpass
-      MYSQL_DATABASE: zabbix
-      ZBX_SERVER_HOST: zabbix-server
-      PHP_TZ: Asia/Ho_Chi_Minh
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      ZBX_SERVER_HOST: ${ZBX_SERVER_HOST}
+      PHP_TZ: ${PHP_TZ}
     ports:
       - "8080:8080"
       - "8443:8443"
@@ -50,6 +50,6 @@ services:
     depends_on:
       - zabbix-server
     environment:
-      ZBX_SERVER_HOST: zabbix-server
+      ZBX_SERVER_HOST: ${ZBX_SERVER_HOST}
     volumes:
       - ./zbx_agent:/etc/zabbix
