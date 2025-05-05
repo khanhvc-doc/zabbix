@@ -3,46 +3,60 @@ version: '3.5'
 services:
   mysql-server:
     image: mysql:5.7
-    container_name: zabbix-mysql
+    restart: always
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
-      - mysql-data:/var/lib/mysql
-    restart: always
+      - ./mysql:/var/lib/mysql
+    command: --character-set-server=utf8 --collation-server=utf8_bin --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   zabbix-server:
     image: zabbix/zabbix-server-mysql:alpine-6.0-latest
-    container_name: zabbix-server
+    restart: always
+    depends_on:
+      mysql-server:
+        condition: service_healthy
     environment:
       DB_SERVER_HOST: mysql-server
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - ./zbx_server:/etc/zabbix
     ports:
       - "10051:10051"
-    depends_on:
-      - mysql-server
-    restart: always
 
   zabbix-web:
     image: zabbix/zabbix-web-nginx-mysql:alpine-6.0-latest
-    container_name: zabbix-web
+    restart: always
+    depends_on:
+      - zabbix-server
+      - mysql-server
     environment:
       DB_SERVER_HOST: mysql-server
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
       ZBX_SERVER_HOST: ${ZBX_SERVER_HOST}
       PHP_TZ: ${PHP_TZ}
     ports:
       - "8080:8080"
       - "8443:8443"
+
+  zabbix-agent:
+    image: zabbix/zabbix-agent:alpine-6.0-latest
+    restart: always
     depends_on:
       - zabbix-server
-    restart: always
-
-volumes:
-  mysql-data:
+    environment:
+      ZBX_SERVER_HOST: ${ZBX_SERVER_HOST}
+    volumes:
+      - ./zbx_agent:/etc/zabbix
