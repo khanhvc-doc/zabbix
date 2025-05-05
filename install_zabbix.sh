@@ -19,6 +19,7 @@ cd ~/zabbix-docker
 
 echo "Downloading docker-compose.yml..."
 curl -fsSL https://raw.githubusercontent.com/khanhvc-doc/zabbix/refs/heads/master/docker-compose.yml -o compose.yml
+curl -fsSL https://raw.githubusercontent.com/khanhvc-doc/zabbix/refs/heads/master/.env -o .env
 
 echo "Creating volume directories if not exist..."
 mkdir -p mysql zbx_server zbx_agent
