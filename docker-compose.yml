@@ -22,8 +22,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
-    volumes:
-      - ./zbx_server:/etc/zabbix
+ 
     ports:
       - "10051:10051"
 

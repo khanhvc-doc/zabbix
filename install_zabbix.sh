@@ -18,14 +18,15 @@ mkdir -p ~/zabbix-docker
 cd ~/zabbix-docker
 
 echo "Downloading docker-compose.yml..."
-curl -fsSL https://raw.githubusercontent.com/khanhvc-doc/zabbix/refs/heads/master/docker-compose.yml -o compose.yml
+curl -fsSL https://raw.githubusercontent.com/khanhvc-doc/zabbix/refs/heads/master/docker-compose.yml -o docker-compose.yml
 curl -fsSL https://raw.githubusercontent.com/khanhvc-doc/zabbix/refs/heads/master/.env -o .env
 
 echo "Creating volume directories if not exist..."
 mkdir -p mysql zbx_server zbx_agent
+sudo usermod -aG docker $USER
 
 echo "Starting Zabbix containers..."
-docker-compose up -d
+sudo docker-compose up -d
 
 echo "Zabbix is running at http://localhost:8080"
 echo "Default login: Admin / zabbix"
