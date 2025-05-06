@@ -1,62 +1,76 @@
-version: '3.5'
 
+version: '3.5'
 services:
-  mysql-server:
-    image: mysql:5.7
-    restart: always
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-server
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - ./mysql:/var/lib/mysql
-    command: --character-set-server=utf8 --collation-server=utf8_bin --default-authentication-plugin=mysql_native_password
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - zabbix-net
+    restart: always
 
   zabbix-server:
-    image: zabbix/zabbix-server-mysql:alpine-6.0-latest
-    restart: always
-    depends_on:
-      mysql-server:
-        condition: service_healthy
+    image: zabbix/zabbix-server-pgsql:ubuntu-6.4-latest
+    container_name: zabbix-server
     environment:
-      DB_SERVER_HOST: mysql-server
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-    volumes:
-      - ./zbx_server:/etc/zabbix
+      - DB_SERVER_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - ZBX_JAVAGATEWAY_ENABLE=${ZBX_JAVAGATEWAY_ENABLE}
+      - ZBX_JAVAGATEWAY=zabbix-java-gateway
+    depends_on:
+      - postgres
+    networks:
+      - zabbix-net
     ports:
       - "10051:10051"
+    restart: always
 
   zabbix-web:
-    image: zabbix/zabbix-web-nginx-mysql:alpine-6.0-latest
-    restart: always
-    depends_on:
-      - zabbix-server
-      - mysql-server
+    image: zabbix/zabbix-web-nginx-pgsql:ubuntu-6.4-latest
+    container_name: zabbix-web
     environment:
-      DB_SERVER_HOST: mysql-server
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      ZBX_SERVER_HOST: ${ZBX_SERVER_HOST}
-      PHP_TZ: ${PHP_TZ}
+      - DB_SERVER_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - ZBX_SERVER_HOST=${ZBX_SERVER_HOST}
+      - PHP_TZ=Asia/Ho_Chi_Minh
+    depends_on:
+      - postgres
+      - zabbix-server
+    networks:
+      - zabbix-net
     ports:
-      - "8080:8080"
-      - "8443:8443"
+      - "80:8080"
+    restart: always
 
   zabbix-agent:
-    image: zabbix/zabbix-agent:alpine-6.0-latest
-    restart: always
-    depends_on:
-      - zabbix-server
+    image: zabbix/zabbix-agent2:ubuntu-6.4-latest
+    container_name: zabbix-agent
     environment:
-      ZBX_SERVER_HOST: ${ZBX_SERVER_HOST}
-    volumes:
-      - ./zbx_agent:/etc/zabbix
+      - ZBX_HOSTNAME=zabbix-agent
+      - ZBX_SERVER_HOST=zabbix-server
+    networks:
+      - zabbix-net
+    restart: always
+
+  zabbix-java-gateway:
+    image: zabbix/zabbix-java-gateway:ubuntu-6.4-latest
+    container_name: zabbix-java-gateway
+    networks:
+      - zabbix-net
+    restart: always
+
+networks:
+  zabbix-net:
+    driver: bridge
+
+volumes:
+  postgres-data:
