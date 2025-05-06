@@ -1,3 +1,18 @@
+# Cài tự động:
+
+1. Cài docker
+sh <(curl -L https://raw.githubusercontent.com/khanhvc-doc/zabbix/refs/heads/master/install_docker.sh)
+
+2. Cài Zabbix
+sh <(curl -L https://raw.githubusercontent.com/khanhvc-doc/zabbix/refs/heads/master/install_zabbix.sh)
+
+3. Thành công:
+Truy cập URL IP máy chủ zabbix, nhập thông tin
+Admin/zabbix
+
+# Cài từng dòng:
+
+
 sudo apt update
 sudo apt upgrade -y
 lsb_release -a
@@ -145,3 +160,4 @@ Password: zabbix
 ## check agent
 docker exec -it zabbix-server zabbix_get -s zabbix-agent -k agent.ping
 Nếu hoạt động bình thường, kết quả sẽ là "`1`".
+
