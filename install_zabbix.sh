@@ -1,37 +1,4 @@
 #!/bin/bash
-
-# Update system and install prerequisites
-echo "Updating system and installing prerequisites..."
-sudo apt update
-sudo apt upgrade -y
-
-# Install required packages
-echo "Installing required packages..."
-sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
-
-# Add Docker repository and install Docker
-echo "Adding Docker repository..."
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-echo "Installing Docker..."
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io
-
-# Verify Docker installation
-echo "Verifying Docker installation..."
-sudo docker --version
-
-# Install Docker Compose
-echo "Installing Docker Compose..."
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.6/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-docker-compose --version
-
-# Add current user to docker group
-echo "Adding user to docker group..."
-sudo usermod -aG docker $USER
-newgrp docker
-
 # Create and prepare project directory
 echo "Creating project directory..."
 mkdir -p ~/zabbix-docker
@@ -51,15 +18,60 @@ curl -fsSL https://raw.githubusercontent.com/khanhvc-doc/zabbix/refs/heads/maste
 
 # Start Zabbix services
 echo "Starting Zabbix services..."
-docker-compose up -d
+# Sử dụng sudo cho docker-compose để đảm bảo quyền truy cập
+sudo docker-compose up -d
 
-# Check if services are running
+# Chờ và kiểm tra dịch vụ đã sẵn sàng
+echo "Waiting for services to be ready..."
+MAX_WAIT=120  # Tối đa chờ 120 giây
+WAIT_TIME=0
+
+while [ $WAIT_TIME -lt $MAX_WAIT ]; do
+    # Kiểm tra tất cả các container có đang chạy không
+    RUNNING_COUNT=$(sudo docker-compose ps | grep -c "Up")
+    EXPECTED_COUNT=5  # postgres, zabbix-server, zabbix-web, zabbix-agent, zabbix-java-gateway
+    
+    if [ "$RUNNING_COUNT" -eq "$EXPECTED_COUNT" ]; then
+        # Thêm kiểm tra Zabbix web có sẵn sàng không
+        if curl -s --head http://localhost:80 | grep "200 OK" > /dev/null; then
+            echo "All services are up and running!"
+            break
+        fi
+    fi
+    
+    # Chờ thêm 5 giây
+    sleep 5
+    WAIT_TIME=$((WAIT_TIME + 5))
+    echo "Still waiting for services... ($WAIT_TIME seconds)"
+done
+
+if [ $WAIT_TIME -ge $MAX_WAIT ]; then
+    echo "Warning: Timeout reached. Some services might not be fully ready yet."
+fi
+
+# Get service status
 echo "Checking services status..."
-docker-compose ps
+sudo docker-compose ps
 
 # Get server IP address
 SERVER_IP=$(hostname -I | awk '{print $1}')
 
-echo "Zabbix installation completed!"
-echo "You can access Zabbix web interface at: http://$SERVER_IP"
-echo "Default login: Admin/zabbix"
+# Kiểm tra lại trạng thái cuối cùng
+ALL_UP=$(sudo docker-compose ps | grep -c "Up")
+EXPECTED_COUNT=5
+
+if [ "$ALL_UP" -eq "$EXPECTED_COUNT" ]; then
+    echo "==============================================="
+    echo "Zabbix installation completed successfully!"
+    echo "You can access Zabbix web interface at: http://$SERVER_IP"
+    echo "Default login: Admin/zabbix"
+    echo "==============================================="
+else
+    echo "==============================================="
+    echo "Zabbix installation completed with warnings."
+    echo "Some services might not be running properly."
+    echo "Please check the service status above."
+    echo "If all services are running, you can access Zabbix at: http://$SERVER_IP"
+    echo "Default login: Admin/zabbix"
+    echo "==============================================="
+fi
