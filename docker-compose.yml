@@ -39,7 +39,8 @@ services:
       test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/10051'"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 60s
 
   zabbix-web:
     image: zabbix/zabbix-web-nginx-pgsql:ubuntu-latest
