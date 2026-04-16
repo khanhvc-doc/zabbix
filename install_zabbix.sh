@@ -32,13 +32,13 @@ echo "[4/5] Kích hoạt hệ thống Zabbix..."
 # Chạy Docker Compose tại thư mục /opt/zabbix-docker
 sudo docker compose up -d
 
-echo "[5/5] Đang chờ Database khởi tạo và các dịch vụ kết nối với nhau..."
-WAIT_TIME=60
-for (( i=$WAIT_TIME; i>0; i-- )); do
-    printf "\r⏳ Vui lòng đợi... %2d giây còn lại " $i
-    sleep 1
+echo "[5/5] Đang kiểm tra trạng thái sẵn sàng của hệ thống..."
+# Chờ cho đến khi zabbix-web báo trạng thái "healthy"
+until [ "$(sudo docker inspect -f '{{.State.Health.Status}}' zabbix-web)" == "healthy" ]; do
+    printf "\r⏳ Đang khởi tạo các dịch vụ... Vui lòng đợi trong giây lát "
+    sleep 2
 done
-echo -e "\n"
+echo -e "\n✅ Hệ thống đã đạt trạng thái Healthy!"
 
 # Tự động lấy IP của máy chủ để in ra màn hình
 SERVER_IP=$(hostname -I | awk '{print $1}')

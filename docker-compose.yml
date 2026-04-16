@@ -5,13 +5,16 @@ services:
     image: postgres:15-alpine
     container_name: zabbix-postgres
     restart: unless-stopped
-    # Load toàn bộ biến từ file .env
     env_file: .env
     volumes:
-      # Disk 2: Lưu trữ database
       - /data/zabbix/postgres:/var/lib/postgresql/data
     networks:
       - zabbix-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   zabbix-server:
     image: zabbix/zabbix-server-pgsql:ubuntu-latest
@@ -20,26 +23,25 @@ services:
     env_file: .env
     environment:
       - DB_SERVER_HOST=postgres-server
-      # Các biến POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB 
-      # sẽ được tự động lấy từ env_file
       - ZBX_CACHESIZE=512M
       - ZBX_LOGTYPE=file
     volumes:
-      # Disk 2: Cấu hình và Dữ liệu Zabbix
       - /data/zabbix/server/alertscripts:/usr/lib/zabbix/alertscripts:ro
       - /data/zabbix/server/externalscripts:/usr/lib/zabbix/externalscripts:ro
       - /data/zabbix/server/export:/var/lib/zabbix/export:rw
-      - /data/zabbix/server/modules:/var/lib/zabbix/modules:ro
-      - /data/zabbix/server/enc:/var/lib/zabbix/enc:ro
-      - /data/zabbix/server/ssh_keys:/var/lib/zabbix/ssh_keys:ro
-      # Disk 2: Log của Server
       - /data/zabbix/log/zabbix-server:/var/log/zabbix:rw
     ports:
       - "10051:10051"
     depends_on:
-      - postgres-server
+      postgres-server:
+        condition: service_healthy
     networks:
       - zabbix-net
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/10051'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   zabbix-web:
     image: zabbix/zabbix-web-nginx-pgsql:ubuntu-latest
@@ -54,14 +56,11 @@ services:
       - "80:8080"
       - "443:8443"
     depends_on:
-      - zabbix-server
-      - postgres-server
+      postgres-server:
+        condition: service_healthy
+      zabbix-server:
+        condition: service_healthy
     volumes:
-      # Disk 2: Log của Web/Nginx
       - /data/zabbix/log/zabbix-web:/var/log/nginx:rw
     networks:
       - zabbix-net
-
-networks:
-  zabbix-net:
-    driver: bridge

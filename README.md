@@ -99,7 +99,7 @@ df -h
 ```
 
 - **Mount tự động**
-    - Lấy UUID
+    - Lấy UUID sau đó thêm vào `fstab`
     ```bash
     sudo blkid /dev/sdb
     ```
@@ -115,6 +115,8 @@ df -h
     ```bash
     UUID=06c8ade9-60f5-42d5-932c-e624735b6079  /data  ext4  defaults  0  2
     ```
+![alt text](image-2.png)
+
 
 - **Test lại**
 ```bash
