@@ -1,0 +1,91 @@
+﻿zabbix_export:
+  version: '7.4'
+  host_groups:
+    - uuid: e0e17488965f481488f670e5767a9057
+      name: 'vck_SNMP_v2_Host Groups'
+  hosts:
+    - host: 'SNMP_ver2_FAC_1_192.168.100.11_Switch_2960_24'
+      name: 'SNMP_ver2_FAC_1_192.168.100.11_Switch_2960_24'
+      templates:
+        - name: 'vck_SNMP_v2_Template'
+      groups:
+        - name: 'vck_SNMP_v2_Host Groups'
+      interfaces:
+        - type: SNMP
+          ip: '192.168.100.11'
+          port: '161'
+          details:
+            community: '{$SNMP_COMMUNITY}'
+          interface_ref: if1
+      macros:
+        - macro: '{$SNMP_COMMUNITY}'
+          value: 'KhanhVC_RO'
+
+    - host: 'SNMP_ver2_FAC_2_192.168.100.12_Switch_2960_24'
+      name: 'SNMP_ver2_FAC_2_192.168.100.12_Switch_2960_24'
+      templates:
+        - name: 'vck_SNMP_v2_Template'
+      groups:
+        - name: 'vck_SNMP_v2_Host Groups'
+      interfaces:
+        - type: SNMP
+          ip: '192.168.100.12'
+          port: '161'
+          details:
+            community: '{$SNMP_COMMUNITY}'
+          interface_ref: if1
+      macros:
+        - macro: '{$SNMP_COMMUNITY}'
+          value: 'KhanhVC_RO'
+
+    - host: 'SNMP_ver2_FAC_3_192.168.100.13_Switch_2960_48'
+      name: 'SNMP_ver2_FAC_3_192.168.100.13_Switch_2960_48'
+      templates:
+        - name: 'vck_SNMP_v2_Template'
+      groups:
+        - name: 'vck_SNMP_v2_Host Groups'
+      interfaces:
+        - type: SNMP
+          ip: '192.168.100.13'
+          port: '161'
+          details:
+            community: '{$SNMP_COMMUNITY}'
+          interface_ref: if1
+      macros:
+        - macro: '{$SNMP_COMMUNITY}'
+          value: 'KhanhVC_RO'
+
+    - host: 'SNMP_ver2_FAC_4_192.168.100.14_Switch_2960_48'
+      name: 'SNMP_ver2_FAC_4_192.168.100.14_Switch_2960_48'
+      templates:
+        - name: 'vck_SNMP_v2_Template'
+      groups:
+        - name: 'vck_SNMP_v2_Host Groups'
+      interfaces:
+        - type: SNMP
+          ip: '192.168.100.14'
+          port: '161'
+          details:
+            community: '{$SNMP_COMMUNITY}'
+          interface_ref: if1
+      macros:
+        - macro: '{$SNMP_COMMUNITY}'
+          value: 'KhanhVC_RO'
+
+    - host: 'SNMP_ver2_FAC_5_192.168.100.15_Switch_2960_24G'
+      name: 'SNMP_ver2_FAC_5_192.168.100.15_Switch_2960_24G'
+      templates:
+        - name: 'vck_SNMP_v2_Template'
+      groups:
+        - name: 'vck_SNMP_v2_Host Groups'
+      interfaces:
+        - type: SNMP
+          ip: '192.168.100.15'
+          port: '161'
+          details:
+            community: '{$SNMP_COMMUNITY}'
+          interface_ref: if1
+      macros:
+        - macro: '{$SNMP_COMMUNITY}'
+          value: 'KhanhVC_RO'
+

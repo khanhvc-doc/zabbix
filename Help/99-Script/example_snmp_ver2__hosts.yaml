@@ -1,0 +1,22 @@
+zabbix_export:
+  version: '7.4'
+  host_groups:
+    - uuid: e0e17488965f481488f670e5767a9057
+      name: 'vck_SNMP_v2_Host Groups'
+  hosts:
+    - host: 'SNMP Ver 2 192.168.100.9'
+      name: 'SNMP Ver 2 192.168.100.9'
+      templates:
+        - name: vck_SNMP_v2_Template
+      groups:
+        - name: 'vck_SNMP_v2_Host Groups'
+      interfaces:
+        - type: SNMP
+          ip: 192.168.100.9
+          port: '161'
+          details:
+            community: '{$SNMP_COMMUNITY}'
+          interface_ref: if1
+      macros:
+        - macro: '{$SNMP_COMMUNITY}'
+          value: KhanhVC_RO
